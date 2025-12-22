@@ -43,7 +43,6 @@ grpccore
 ```
 
 ## Directory Structure
-Ensure your workspace is structured as follows to resolve `libcore` dependencies correctly:
 
 ```text
 corgi_sbrio_ws/
