@@ -1,7 +1,7 @@
 # Corgi gRPC Power & Config Node Test Tools
 
 ## Overview
-This repository (`corgi_grpc_test` branch) provides testing tools for the Corgi robot's gRPC communication architecture. It specifically targets the **Power Node** (FSM mode/power control) and **Config Node** (Motor parameter configuration) to verify Publish/Subscribe functionality and handshake mechanisms.
+This repository provides testing tools for the Corgi robot's gRPC communication architecture. It specifically targets the **Power Node** and **Config Node** to verify Publish/Subscribe functionality.
 
 ---
 ## Build Instructions
@@ -15,30 +15,33 @@ cd grpc_pubsub_test
 git checkout corgi_grpc_test
 
 # 2. Build
-mkdir build 
-cd build 
-cmake .. -DCMAKE_PREFIX_PATH=$HOME/corgi_sbrio_ws/install
+mkdir build && cd build
+cmake .. -DCMAKE_PREFIX_PATH=$HOME/corgi_ws/install -DCMAKE_INSTALL_PREFIX=$HOME/corgi_ws/install -DOPENSSL_ROOT_DIR=$HOME/corgi_ws/install/ssl
 make -j16
 ```
-## PowerNodeTest Usage
+## Run PowerNodeTest
 
 ```bash
 # Terminal 1
 grpccore
-# Terminal 2 (inside build/)
+# Terminal 2
+cd ~/corgi_ws/grpc_pubsub_test/build
 ./PowerNodeTestPub
-# Terminal 3 (inside build/)
+# Terminal 3
+cd ~/corgi_ws/grpc_pubsub_test/build
 ./PowerNodeTestSub
 ```
 
-## ConfigNodeTest Usage
+## Run ConfigNodeTest
 
 ```bash
 # Terminal 1
 grpccore
-# Terminal 2 (inside build/)
+# Terminal 2
+cd ~/corgi_ws/grpc_pubsub_test/build
 ./ConfigNodeTestPub
-# Terminal 3 (inside build/)
+# Terminal 3
+cd ~/corgi_ws/grpc_pubsub_test/build
 ./ConfigNodeTestSub
 ```
 
