@@ -53,7 +53,7 @@ int main()
 
     core::Publisher<config_msg::ConfigStamped> &pub = nh.advertise<config_msg::ConfigStamped>("config/bus");
     
-    int seq = 0;
+    int seq = 1;
 
     config_msg::ConfigStamped draft_msg;
 
