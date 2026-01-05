@@ -66,9 +66,9 @@ int main() {
     core::NodeHandler nh;
     core::Rate rate(1000); 
 
-    core::Subscriber<config_msg::ConfigStamped> &sub = nh.subscribe<config_msg::ConfigStamped>("config/bus", 1000, cb);
+    core::Subscriber<config_msg::ConfigStamped> &sub = nh.subscribe<config_msg::ConfigStamped>("motor/config", 1000, cb, 10);
     
-    std::cout << "Config Node Test Subscriber Started. Listening on 'config/bus'...\n";
+    std::cout << "Config Node Test Subscriber Started. Listening on 'motor/config'...\n";
 
     while (1)
     {

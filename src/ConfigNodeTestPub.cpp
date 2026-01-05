@@ -51,12 +51,13 @@ int main()
     core::NodeHandler nh;
     core::Rate rate(1000);
 
-    core::Publisher<config_msg::ConfigStamped> &pub = nh.advertise<config_msg::ConfigStamped>("config/bus");
+    core::Publisher<config_msg::ConfigStamped> &pub = nh.advertise<config_msg::ConfigStamped>("motor/config", 1000);
     
     int seq = 1;
 
     config_msg::ConfigStamped draft_msg;
 
+    // Initial Defaults
     draft_msg.set_module(config_msg::MODULE_A);
     draft_msg.set_motor(config_msg::MOTOR_R);
     draft_msg.set_mode(config_msg::READ);
@@ -68,17 +69,19 @@ int main()
     draft_msg.set_error_code(0);
 
     std::cout << "Config Node Test Publisher Started.\n";
-    std::cout << "--------------------------------------------------------\n";
-    std::cout << "Batch Command:\n";
-    std::cout << "  C <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
-    std::cout << "  Example: C A R W F 25 50.5\n";
-    std::cout << "--------------------------------------------------------\n";
-    std::cout << "Single Commands:\n";
-    std::cout << "  C M <A-D> | C m <R/L> | C d <R/W> | C t <I/F>\n";
-    std::cout << "  C a <int> | C v <num>\n";
-    std::cout << "--------------------------------------------------------\n";
+    std::cout << "--------------------------------------------------------------\n";
+    std::cout << "Batch Mode (Start with B):\n";
+    std::cout << "  B <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
+    std::cout << "  Example: B A R W F 25 50.5\n";
+    std::cout << "--------------------------------------------------------------\n";
+    std::cout << "Single Mode (Start with S):\n";
+    std::cout << "  S <SubCmd> <Arg>\n";
+    std::cout << "  SubCmds: M(Mod), R(Mot), D(Mode), T(Type), A(Addr), V(Val)\n";
+    std::cout << "  Example: S M A  |  S A 10  |  S V 50.5\n";
+    std::cout << "--------------------------------------------------------------\n";
     std::cout << "Actions:\n";
-    std::cout << "  S  - Send Config\n";
+    std::cout << "  T  - Transmit (Send Config)\n";
+    std::cout << "  P  - Print Draft\n";
     std::cout << "  H  - Help\n";
 
     print_draft(draft_msg);
@@ -97,73 +100,72 @@ int main()
         if (cmd.empty()) continue;
         std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 
-        if (cmd == "C") 
+        // ---------------------------------------------------------
+        // B: Batch Mode
+        // ---------------------------------------------------------
+        if (cmd == "B") 
+        {
+            char module, motor, mode, type;
+            int addr;
+            float value;
+
+            if (iss >> module >> motor >> mode >> type >> addr >> value) 
+            {
+                module = toupper(module);
+                motor = toupper(motor);
+                mode = toupper(mode);
+                type = toupper(type);
+
+                // 1. Set Module
+                if (module == 'A') draft_msg.set_module(config_msg::MODULE_A);
+                else if (module == 'B') draft_msg.set_module(config_msg::MODULE_B);
+                else if (module == 'C') draft_msg.set_module(config_msg::MODULE_C);
+                else if (module == 'D') draft_msg.set_module(config_msg::MODULE_D);
+
+                // 2. Set Motor
+                if (motor == 'R') draft_msg.set_motor(config_msg::MOTOR_R);
+                else if (motor == 'L') draft_msg.set_motor(config_msg::MOTOR_L);
+
+                // 3. Set Mode
+                if (mode == 'R') draft_msg.set_mode(config_msg::READ);
+                else if (mode == 'W') draft_msg.set_mode(config_msg::WRITE);
+
+                // 4. Set Type
+                if (type == 'I') draft_msg.set_type(config_msg::INT);
+                else if (type == 'F') draft_msg.set_type(config_msg::FLOAT);
+
+                // 5. Set Address
+                draft_msg.set_address(addr);
+
+                // 6. Set Value
+                if (draft_msg.type() == config_msg::INT) {
+                    draft_msg.set_value_i(static_cast<int32_t>(value));
+                    draft_msg.set_value_f(0);
+                } else {
+                    draft_msg.set_value_f(value);
+                    draft_msg.set_value_i(0);
+                }
+                
+                std::cout << "Batch Config Set.\n";
+            } 
+            else 
+            {
+                std::cout << "Invalid Batch Format. Usage: B <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
+            }
+            print_draft(draft_msg);
+        }
+        // ---------------------------------------------------------
+        // S: Single Mode
+        // ---------------------------------------------------------
+        else if (cmd == "S") 
         {
             std::string arg1;
             iss >> arg1;
             
-            if (arg1.empty()) {
-                std::cout << "Missing arguments.\n";
-                continue;
-            }
-
-            char first_char = toupper(arg1[0]);
-            bool is_batch_mode = (arg1.length() == 1 && (first_char >= 'A' && first_char <= 'D'));
-
-            if (is_batch_mode) 
+            if (!arg1.empty()) 
             {
-                char mod_c = first_char;
-                char mot_c, mode_c, type_c;
-                int addr_i;
-                float val_f;
+                char subcmd = toupper(arg1[0]);
 
-                if (iss >> mot_c >> mode_c >> type_c >> addr_i >> val_f) 
-                {
-                    mot_c = toupper(mot_c);
-                    mode_c = toupper(mode_c);
-                    type_c = toupper(type_c);
-
-                    // 1. Set Module
-                    if (mod_c == 'A') draft_msg.set_module(config_msg::MODULE_A);
-                    else if (mod_c == 'B') draft_msg.set_module(config_msg::MODULE_B);
-                    else if (mod_c == 'C') draft_msg.set_module(config_msg::MODULE_C);
-                    else if (mod_c == 'D') draft_msg.set_module(config_msg::MODULE_D);
-
-                    // 2. Set Motor
-                    if (mot_c == 'R') draft_msg.set_motor(config_msg::MOTOR_R);
-                    else if (mot_c == 'L') draft_msg.set_motor(config_msg::MOTOR_L);
-
-                    // 3. Set Mode
-                    if (mode_c == 'R') draft_msg.set_mode(config_msg::READ);
-                    else if (mode_c == 'W') draft_msg.set_mode(config_msg::WRITE);
-
-                    // 4. Set Type
-                    if (type_c == 'I') draft_msg.set_type(config_msg::INT);
-                    else if (type_c == 'F') draft_msg.set_type(config_msg::FLOAT);
-
-                    // 5. Set Address
-                    draft_msg.set_address(addr_i);
-
-                    // 6. Set Value
-                    if (draft_msg.type() == config_msg::INT) {
-                        draft_msg.set_value_i(static_cast<int32_t>(val_f));
-                        draft_msg.set_value_f(0);
-                    } else {
-                        draft_msg.set_value_f(val_f);
-                        draft_msg.set_value_i(0);
-                    }
-                    
-                    std::cout << "Batch Config Set.\n";
-                } 
-                else 
-                {
-                    std::cout << "Invalid Batch Format. Usage: C <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
-                }
-            }
-            else 
-            {
-                char subcmd = arg1[0]; 
-                
                 if (subcmd == 'M') { // Module
                     std::string val; iss >> val; 
                     if(!val.empty()) {
@@ -174,7 +176,7 @@ int main()
                         else if (m=='D') draft_msg.set_module(config_msg::MODULE_D);
                     }
                 }
-                else if (subcmd == 'm') { // Motor
+                else if (subcmd == 'R') { // Motor (R/L)
                     std::string val; iss >> val;
                     if(!val.empty()) {
                         char m = toupper(val[0]);
@@ -182,7 +184,7 @@ int main()
                         else if (m=='L') draft_msg.set_motor(config_msg::MOTOR_L);
                     }
                 }
-                else if (subcmd == 'd') { // Direction
+                else if (subcmd == 'D') { // Direction / Mode (R/W)
                     std::string val; iss >> val;
                     if(!val.empty()) {
                         char d = toupper(val[0]);
@@ -190,7 +192,7 @@ int main()
                         else if (d=='W') draft_msg.set_mode(config_msg::WRITE);
                     }
                 }
-                else if (subcmd == 't') { // Type
+                else if (subcmd == 'T') { // Type (I/F)
                     std::string val; iss >> val;
                     if(!val.empty()) {
                         char t = toupper(val[0]);
@@ -198,11 +200,11 @@ int main()
                         else if (t=='F') draft_msg.set_type(config_msg::FLOAT);
                     }
                 }
-                else if (subcmd == 'a') { // Address
+                else if (subcmd == 'A') { // Address
                     int val; 
                     if(iss >> val) draft_msg.set_address(val);
                 }
-                else if (subcmd == 'v') { // Value
+                else if (subcmd == 'V') { // Value
                     float val;
                     if(iss >> val) {
                         if (draft_msg.type() == config_msg::INT) draft_msg.set_value_i((int)val);
@@ -210,12 +212,19 @@ int main()
                     }
                 }
                 else {
-                    std::cout << "Unknown command: " << arg1 << "\n";
+                    std::cout << "Unknown Single Command: " << arg1 << "\n";
                 }
+            }
+            else
+            {
+                std::cout << "Missing Sub-Command. Usage: S <SubCmd> <Arg>\n";
             }
             print_draft(draft_msg);
         }
-        else if (cmd == "S") 
+        // ---------------------------------------------------------
+        // T: Transmit (Send)
+        // ---------------------------------------------------------
+        else if (cmd == "T") 
         {
             auto* header = draft_msg.mutable_header();
             header->set_seq(seq++);
@@ -233,9 +242,13 @@ int main()
         }
         else if (cmd == "H") 
         {
-             std::cout << "Batch:  C <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
-             std::cout << "Single: C <M/m/d/t/a/v> <Arg>\n";
-             std::cout << "Action: S (Send)\n";
+             std::cout << "Batch:  B <Mod> <Mot> <R/W> <I/F> <Addr> <Val>\n";
+             std::cout << "Single: S <M/R/D/T/A/V> <Arg>\n";
+             std::cout << "Action: T (Transmit/Send)\n";
+        }
+        else if (cmd == "P") 
+        {
+            print_draft(draft_msg);
         }
         else 
         {
