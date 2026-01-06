@@ -51,7 +51,7 @@ int main()
     core::NodeHandler nh;
     core::Rate rate(1000);
 
-    core::Publisher<config_msg::ConfigStamped> &pub = nh.advertise<config_msg::ConfigStamped>("motor/config", 1000);
+    core::Publisher<config_msg::ConfigStamped> &pub = nh.advertise<config_msg::ConfigStamped>("motor/config/request", 1000);
     
     int seq = 1;
 
