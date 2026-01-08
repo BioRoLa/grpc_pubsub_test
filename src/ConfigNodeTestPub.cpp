@@ -65,7 +65,6 @@ int main()
     draft_msg.set_address(0);
     draft_msg.set_value_f(0.0f);
     draft_msg.set_value_i(0);
-    draft_msg.set_transmit(false);
     draft_msg.set_error_code(0);
 
     std::cout << "Config Node Test Publisher Started.\n";
@@ -233,12 +232,8 @@ int main()
             header->mutable_stamp()->set_sec(static_cast<int32_t>(std::chrono::duration_cast<std::chrono::seconds>(epoch).count()));
             header->mutable_stamp()->set_usec(static_cast<int32_t>(std::chrono::duration_cast<std::chrono::microseconds>(epoch).count() % 1000000));
 
-            draft_msg.set_transmit(true);
-
             pub.publish(draft_msg);
             std::cout << "Config SENT! (Seq: " << seq-1 << ")\n";
-            
-            draft_msg.set_transmit(false);
         }
         else if (cmd == "H") 
         {

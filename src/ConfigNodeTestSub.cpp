@@ -50,8 +50,6 @@ void cb(config_msg::ConfigStamped m)
     } else {
         std::cout << "Value: " << std::fixed << std::setprecision(4) << m.value_f() << " (Float)\n";
     }
-
-    std::cout << "State: " << (m.transmit() ? "BUSY (Transmit=1)" : "DONE (Transmit=0)") << " | ";
     
     if (m.error_code() == 0) {
         std::cout << "Error: OK (0)\n";
