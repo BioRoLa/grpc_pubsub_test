@@ -10,7 +10,7 @@ Follow these steps to download and compile the test tools:
 
 ```bash
 # 1. Clone and Checkout
-git clone https://github.com/rumsey000/grpc_pubsub_test
+git clone [https://github.com/rumsey000/grpc_pubsub_test](https://github.com/BioRoLa/grpc_pubsub_test.git)
 cd grpc_pubsub_test
 git checkout corgi_grpc_test
 
