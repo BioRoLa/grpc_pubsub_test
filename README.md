@@ -1,4 +1,4 @@
-# Corgi gRPC Power & Config Node Test Tools
+# Corgi gRPC Config Node Test Tools
 
 ## Overview
 This repository provides testing tools for the Corgi robot's gRPC communication architecture. It specifically targets the **Config Node** to verify Publish/Subscribe functionality.
@@ -10,7 +10,7 @@ Follow these steps to download and compile the test tools:
 
 ```bash
 # 1. Clone and Checkout
-git clone [https://github.com/rumsey000/grpc_pubsub_test](https://github.com/BioRoLa/grpc_pubsub_test.git)
+git clone https://github.com/BioRoLa/grpc_pubsub_test.git
 cd grpc_pubsub_test
 git checkout corgi_grpc_test
 
